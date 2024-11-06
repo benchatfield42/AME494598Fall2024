@@ -2,4 +2,5 @@ curl -s https://gist.githubusercontent.com/tejaswigowda/2e65197acb0d5ed9776737c5
 
 npm install mongodb@3.6
 
-sudo service mongod 
+sudo service mongod start
+

@@ -38,43 +38,75 @@ function getTSInFormat(t)
 	return x.getFullYear() + "-" + (x.getMonth()+1) + "-" + x.getDate() + "T" + x.getHours() + ":" + x.getMinutes() + ":" + x.getSeconds();
 }
 function start(){
-	flatpickr("#datetimeSelect", { enableTime: true,
-    dateFormat: "Y-m-d H:i"});
+    // Initialize flatpickr and add event listener for datetime selection
+    flatpickr("#datetimeSelect", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        onChange: updateGraph  // Call updateGraph when the time is changed
+    });
 
-	var url = "./getLatest";
-	var callback = function(data){
-		var obj = JSON.parse(data);
-		var columns = [["x"],["Temperature"],["Humidity"]]
-		for(var i = 0; i < obj.length; i++){
-			var timestamp = parseInt(obj[i].time);
-			columns[0].push(getTSInFormat(timestamp));
-			columns[1].push(obj[i].t || 0);
-			columns[2].push(obj[i].h || 0);
-			lastAddedTS = timestamp;
-		}
-		chart = c3.generate({
-    	bindto: '#data',
-    	data: {
-				x: 'x',
-				xFormat: '%Y-%m-%dT%H:%M:%S',
-      	columns: columns
-    	},
-			axis: {
-        x: {
-            type: 'timeseries',
-            tick: {
-                format: '%H:%M:%S,%Y-%m-%d',
-            }
+    // Initial data load and chart setup
+    loadInitialData();
+
+    // Set up interval for regular data updates
+    setInterval(getDataFromServer, 1000);
+}
+
+function loadInitialData() {
+    var url = "./getLatest";
+    var callback = function(data) {
+        var obj = JSON.parse(data);
+        var columns = [["x"], ["Temperature"], ["Humidity"]];
+        for (var i = 0; i < obj.length; i++) {
+            var timestamp = parseInt(obj[i].time);
+            columns[0].push(getTSInFormat(timestamp));
+            columns[1].push(obj[i].t || 0);
+            columns[2].push(obj[i].h || 0);
+            lastAddedTS = timestamp;
         }
-    	}
-		});
+        chart = c3.generate({
+            bindto: '#data',
+            data: {
+                x: 'x',
+                xFormat: '%Y-%m-%dT%H:%M:%S',
+                columns: columns
+            },
+            axis: {
+                x: {
+                    type: 'timeseries',
+                    tick: {
+                        format: '%H:%M:%S,%Y-%m-%d'
+                    }
+                }
+            }
+        });
+    };
+    loadFile(url, callback);
+}
+
+function updateGraph(selectedDates) {
+    if (!selectedDates.length) return;
+    const selectedStartTime = selectedDates[0];
+
+    var url = `./getLatest?startTime=${selectedStartTime.getTime()}`;
+    var callback = function(data) {
+        var obj = JSON.parse(data);
+        var columns = [["x"], ["Temperature"], ["Humidity"]];
+        for (var i = 0; i < obj.length; i++) {
+            var timestamp = parseInt(obj[i].time);
+            columns[0].push(getTSInFormat(timestamp));
+            columns[1].push(obj[i].t || 0);
+            columns[2].push(obj[i].h || 0);
+        }
+        chart.load({
+            columns: columns,
+        });
+    };
+    loadFile(url, callback);
 
 
-	}
-	loadFile(url, callback);
 
-
-	setInterval("getDataFromServer()", 1000);
+	//setInterval("getDataFromServer()", 1000);  //updates chart every sec
 }
 
 

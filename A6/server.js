@@ -17,7 +17,7 @@ var db; // Declare a global db object to be used in routes
 // Connect to the database once at the start
 MongoClient.connect(connectionString, { useNewUrlParser: true })
   .then(client => {
-    db = client.db('sensorData'); // Use your actual database name here
+    db = client.db('sensorData'); 
     console.log("Connected to MongoDB");
   })
   .catch(err => console.error(err));
@@ -30,7 +30,7 @@ app.get("/getAverage", function (req, res) {
   var from = parseInt(req.query.from);
   var to = parseInt(req.query.to);
 
-  // Fetch records between 'from' and 'to' times
+  // Fetch records between from and to times
   db.collection("data").find({time:{$gt:from, $lt:to}}).toArray(function(err, result){
     if (err) {
       res.status(500).send("Error fetching data.");
@@ -40,16 +40,15 @@ app.get("/getAverage", function (req, res) {
     var tempSum = 0;
     var humSum = 0;
 
-    // Loop through the result and calculate sums
+   
     for (var i = 0; i < result.length; i++) {
       tempSum += result[i].t || 0;
-      humSum += result[i].h || 0;  // Fix: sum humidity, not temperature
+      humSum += result[i].h || 0;  
     }
 
     var tAvg = tempSum / result.length;
     var hAvg = humSum / result.length;
 
-    // Return the average temperature and humidity
     res.send({ temperatureAvg: tAvg, humidityAvg: hAvg });
   });
 });
@@ -73,7 +72,7 @@ app.get("/getData", function (req, res) {
   var from = parseInt(req.query.from);
   var to = parseInt(req.query.to);
 
-  // Fetch data based on the time range specified by 'from' and 'to'
+  // Fetch data based on the time range specified by from and to
   db.collection("data").find({time:{$gt:from, $lt:to}}).sort({time: -1}).toArray(function(err, result){
     if (err) {
       res.status(500).send("Error fetching data.");

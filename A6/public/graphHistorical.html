@@ -42,13 +42,11 @@
 	}
 
 	function start() {
-		// Initialize the date picker with Flatpickr
 		flatpickr("#datetimeSelect", {
 			enableTime: true,
 			dateFormat: "Y-m-d H:i"
 		});
 
-		// Create the initial empty chart
 		chart = c3.generate({
 			bindto: '#data',
 			data: {
